@@ -5,6 +5,9 @@ import { ProductsController } from './products/products.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductsService } from './products/products.service';
 import { Product } from './products/entities/product.entity';
+import { Category } from './categories/entities/categories.entity';
+import { CategoriesController } from './categories/categories.controller';
+import { CategoriesService } from './categories/categories.service';
 
 @Module({
   imports: [
@@ -15,12 +18,12 @@ import { Product } from './products/entities/product.entity';
       username: 'bsale_test',
       password: 'bsale_test',
       database: 'bsale_test',
-      entities: [Product],
+      entities: [Product, Category],
       synchronize: false,
     }),
-    TypeOrmModule.forFeature([Product]),
+    TypeOrmModule.forFeature([Product, Category]),
   ],
-  controllers: [AppController, ProductsController],
-  providers: [AppService, ProductsService],
+  controllers: [AppController, ProductsController, CategoriesController],
+  providers: [AppService, ProductsService, CategoriesService],
 })
 export class AppModule {}
