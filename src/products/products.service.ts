@@ -3,12 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { Like } from 'typeorm';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class ProductsService {
   newOffer;
-
+  
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
@@ -45,7 +45,7 @@ export class ProductsService {
   }
 
   // Keep Alive Strategy
-  @Cron(CronExpression.EVERY_SECOND)
+  @Cron('0/3 * * * * *')
   async requestNewOffer() {
     this.newOffer = this.productRepository
       .createQueryBuilder()
