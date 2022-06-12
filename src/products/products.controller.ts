@@ -11,11 +11,11 @@ import {
 import { ProductsService } from './products.service';
 import { Request } from 'express';
 
-@Controller('products')
+@Controller()
 export class ProductsController {
   constructor(private productsServices: ProductsService) {}
 
-  @Get()
+  @Get('products')
   getAll(@Res() response) {
     this.productsServices
       .getAll()
@@ -29,7 +29,7 @@ export class ProductsController {
       });
   }
 
-  @Get(':id')
+  @Get('products/:id')
   getById(@Res() response, @Param('id') id) {
     this.productsServices
       .getById(id)
@@ -45,7 +45,7 @@ export class ProductsController {
       });
   }
 
-  @Post('search')
+  @Post('products/search')
   geatByQuery(@Res() response, @Req() req: Request) {
     const s = `%${req.query.s}%`;
     this.productsServices
@@ -60,7 +60,7 @@ export class ProductsController {
       });
   }
 
-  @Get('category/:id')
+  @Get('products/category/:id')
   getByCategory(@Res() response, @Param('id') id) {
     const categoryId = parseInt(id, 10);
     this.productsServices
@@ -72,6 +72,21 @@ export class ProductsController {
         response
           .status(HttpStatus.FORBIDDEN)
           .json({ mensaje: 'Error al obtener productos', e, id: id });
+      });
+  }
+
+  @Get('offer')
+  getNewOffer(@Res() response) {
+    this.productsServices
+      .getNewOffer()
+      .then((product) => {
+        response.status(HttpStatus.OK).json(product);
+      })
+      .catch((e) => {
+        response.status(HttpStatus.FORBIDDEN).json({
+          mensaje: 'Error al obtener producto',
+          e,
+        });
       });
   }
 }
