@@ -45,7 +45,7 @@ export class ProductsService {
   }
 
   // Keep Alive Strategy
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_SECOND)
   async requestNewOffer() {
     this.newOffer = this.productRepository
       .createQueryBuilder()
