@@ -163,6 +163,28 @@ export class CategoriesController {
 ```bash
 $ npm install
 ```
+## Deployment
+
+1. En el caso de no haber inicializado git
+```bash
+ git init
+ git branch -M main
+ git add -A
+ git commit -m "Git inicializado"
+```
+2. Iniciar sesión en Heroku y crear app:
+```bash
+heroku login
+```
+- Luego de iniciar sesión 
+```bash
+-  heroku apps:create <nombre_app>
+```
+3. Subir proyecto a Heroku: 
+```bash 
+git push heroku main
+```
+
 
 ## Iniciar App
 
