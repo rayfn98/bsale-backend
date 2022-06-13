@@ -1,38 +1,170 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Desafío BSALE - Backend
+Aplicación Backend de Tienda en línea desarrollada con NestJS, en el cuál se realizaron los servicios para que sean consumidas en el lado del cliente.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Tecnologías
+- NestJS con TypeORM
+- nestjs/schedule "Para KEEP ALIVE"
+- HEROKU
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Keep Alive
+La estrategia de Keep Alive se usó primero una conexión pool mediante TypeORM para mantener la sesión iniciada en el pool de conexiones.
+Se solucionó el plazo de 5 segundos de la base de datos usando una tarea programada con el intervalo de 3 segundos. En el cuál se obtiene un producto oferta aleatoriamente para que así se mantenga la conexión activa y también el frontend pueda tener un banner de ofertas actualizada cada 7 segundos, que confirma la Persistencia de la conexión
 
-## Description
+## Filtros
+Se realizaron servicios de:
+- Obtener todas las categorías
+- Obtener todos los productos
+- Obtener producto por ID
+- Filtrar productos por categoría
+- Obtener productos que contengan un determinado "QUERY"
+- KEEP ALIVE: Obtener oferta (Retorna la oferta)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Código de KeepAlive:
+Uso de cron para determinar el intervalo de tiempo
+```javascript
+  // Keep Alive Strategy
+  @Cron('0/3 * * * * *')
+  async requestNewOffer() {
+    this.newOffer = this.productRepository
+      .createQueryBuilder()
+      .select('product')
+      .from(Product, 'product')
+      .where('product.discount > 0')
+      .orderBy('RAND()')
+      .getOne();
 
-## Installation
+    return await this, this.newOffer;
+  }
+```
+## Controladores
+
+- ProductController
+```javascript
+import {
+  Controller,
+  Get,
+  Body,
+  Res,
+  HttpStatus,
+  Param,
+  Req,
+  Post,
+} from '@nestjs/common';
+import { ProductsService } from './products.service';
+import { Request } from 'express';
+
+@Controller()
+export class ProductsController {
+  constructor(private productsServices: ProductsService) {}
+
+  @Get('products')
+  getAll(@Res() response) {
+    this.productsServices
+      .getAll()
+      .then((productsList) => {
+        response.status(HttpStatus.OK).json(productsList);
+      })
+      .catch((e) => {
+        response
+          .status(HttpStatus.FORBIDDEN)
+          .json({ mensaje: 'Error al obtener productos', e });
+      });
+  }
+
+  @Get('products/:id')
+  getById(@Res() response, @Param('id') id) {
+    this.productsServices
+      .getById(id)
+      .then((product) => {
+        response.status(HttpStatus.OK).json(product);
+      })
+      .catch((e) => {
+        response.status(HttpStatus.FORBIDDEN).json({
+          mensaje: 'Error al obtener producto',
+          e,
+          a: { params: id },
+        });
+      });
+  }
+
+  @Post('products/search')
+  geatByQuery(@Res() response, @Req() req: Request) {
+    const s = `%${req.query.s}%`;
+    this.productsServices
+      .searchByName(s)
+      .then((product) => {
+        response.status(HttpStatus.OK).json(product);
+      })
+      .catch((e) => {
+        response
+          .status(HttpStatus.FORBIDDEN)
+          .json({ mensaje: 'Error al obtener producto', e });
+      });
+  }
+
+  @Get('products/category/:id')
+  getByCategory(@Res() response, @Param('id') id) {
+    const categoryId = parseInt(id, 10);
+    this.productsServices
+      .getByCategory(categoryId)
+      .then((products) => {
+        response.status(HttpStatus.OK).json(products);
+      })
+      .catch((e) => {
+        response
+          .status(HttpStatus.FORBIDDEN)
+          .json({ mensaje: 'Error al obtener productos', e, id: id });
+      });
+  }
+
+  @Get('offer')
+  getNewOffer(@Res() response) {
+    this.productsServices
+      .getNewOffer()
+      .then((product) => {
+        response.status(HttpStatus.OK).json(product);
+      })
+      .catch((e) => {
+        response.status(HttpStatus.FORBIDDEN).json({
+          mensaje: 'Error al obtener producto',
+          e,
+        });
+      });
+  }
+}
+```
+- CategoryController
+```javascript
+import { Controller, Get, Body, Res, HttpStatus } from '@nestjs/common';
+import { CategoriesService } from './categories.service';
+
+@Controller('categories ')
+export class CategoriesController {
+  constructor(private categoriesServices: CategoriesService) {}
+
+  @Get()
+  getAll(@Res() response) {
+    this.categoriesServices
+      .getAll()
+      .then((categoriesList) => {
+        response.status(HttpStatus.OK).json(categoriesList);
+      })
+      .catch((e) => {
+        response
+          .status(HttpStatus.FORBIDDEN)
+          .json({ mensaje: 'Error al obtener categorías', e });
+      });
+  }
+}
+```
+
+## Instalación
 
 ```bash
 $ npm install
 ```
 
-## Running the app
+## Iniciar App
 
 ```bash
 # development
@@ -44,19 +176,18 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+## Frontend
+https://github.com/rayfn98/desaf-o_bsale/
 
-## Test
+## Autor
+Ray Flores Nolasco
+### Contacto
+- WhatsApp: +51929044032
+- Email: rayfn98@gmail.com
+- Linkedin: https://www.linkedin.com/in/rayfloresnolasco/
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
+## NestJS
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
 ## Support
 
