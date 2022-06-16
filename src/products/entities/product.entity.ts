@@ -2,6 +2,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Product {
+  //COLUMNAS DE LA TABLA PRODUCTO
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -17,6 +18,7 @@ export class Product {
   @Column()
   discount: number;
 
+  // Id e la categoría a la que pertenece
   @Column()
   category: number;
 }

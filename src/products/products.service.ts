@@ -9,18 +9,19 @@ import { Cron } from '@nestjs/schedule';
 export class ProductsService {
   newOffer;
   
+  // Se declara el repositorio de producto que vincula a la base de datos
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
   ) {}
 
 
-  // All products list
+  // Obtiene la lista de todos los productos
   async getAll() {
     return await this, this.productRepository.find();
   }
 
-  // Get individual product / Used for add to cart
+  // Obtener producto individual / Usado en añadir al carrito para obtener la información
   async getById(searchId: number) {
     const product = this.productRepository.findOneBy({
       id: searchId,
@@ -28,7 +29,7 @@ export class ProductsService {
     return await this, product;
   }
 
-  // Filter by name
+  // Filtra por nombre
   async searchByName(query: string) {
     let response = this.productRepository.find({
       where: [{ name: Like(`%${query}%`) }],
@@ -36,7 +37,7 @@ export class ProductsService {
     return await this, response;
   }
 
-  // Filter by category
+  // Filtra por categoría
   async getByCategory(categoryId: number) {
     const products = this.productRepository.find({
       where: { category: categoryId },
@@ -44,7 +45,8 @@ export class ProductsService {
     return await this, products;
   }
 
-  // Keep Alive Strategy
+  // Keep Alive Strategy // Etrategia de Keep Alive
+  // Obtiene una nueva oferta aleatoria cada 3 segundos
   @Cron('0/3 * * * * *')
   async requestNewOffer() {
     this.newOffer = this.productRepository
@@ -58,6 +60,8 @@ export class ProductsService {
     return await this, this.newOffer;
   }
 
+  // Envía la oferta actual obtenida por el método anterior
+  // con el fin de testear la consistencia de conexión usando Keep Alive
   async getNewOffer() {
     return await this, this.newOffer;
   }

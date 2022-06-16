@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  // Obtiene el saludo establecido en el servicio principal
   @Get()
   getHello(): string {
     return this.appService.getHello();

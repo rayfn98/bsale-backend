@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Body,
   Res,
   HttpStatus,
   Param,
@@ -11,10 +10,13 @@ import {
 import { ProductsService } from './products.service';
 import { Request } from 'express';
 
+// CONTROLADOR DE PRODUCTOS
+
 @Controller()
 export class ProductsController {
   constructor(private productsServices: ProductsService) {}
 
+  // Obtener lista de todos los productos
   @Get('products')
   getAll(@Res() response) {
     this.productsServices
@@ -29,6 +31,8 @@ export class ProductsController {
       });
   }
 
+  // Obtener producto por ID,
+  // usado para añadir al carrito
   @Get('products/:id')
   getById(@Res() response, @Param('id') id) {
     this.productsServices
@@ -45,6 +49,8 @@ export class ProductsController {
       });
   }
 
+  // Filtrar por nombre mediante query
+  // Usado en el buscador y filtra los productos que contienen el Query ingresado
   @Post('products/search')
   geatByQuery(@Res() response, @Req() req: Request) {
     const s = `%${req.query.s}%`;
@@ -60,6 +66,8 @@ export class ProductsController {
       });
   }
 
+  // Obtener productos de una determinada categoría
+  // mediante el ID
   @Get('products/category/:id')
   getByCategory(@Res() response, @Param('id') id) {
     const categoryId = parseInt(id, 10);
@@ -75,6 +83,9 @@ export class ProductsController {
       });
   }
 
+  // Obtener la offerta actual que se encuentra en el backend
+  /* Esta oferta se va actualizando cada 3 segundos (KEEP ALIVE)
+     Este controlador envía esa oferta */
   @Get('offer')
   getNewOffer(@Res() response) {
     this.productsServices
