@@ -1,10 +1,129 @@
 # Desafío BSALE - Backend
-Aplicación Backend de Tienda en línea desarrollada con NestJS, en el cuál se realizaron los servicios para que sean consumidas en el lado del cliente.
+Aplicación Backend de Tienda en línea desarrollada con NestJS, en el cuál se conectó la base de datos y se realizaron los servicios para que sean consumidas en el lado del cliente. También cuenta con estrategia Keep Alive implementándose un pool de conexiones y una tarea programada con el intervalo de 3 segundos que mantiene la sesión abierta con la base de datos para que la conexión sea persistente.
 
 ## Tecnologías
 - NestJS con TypeORM
 - nestjs/schedule "Para KEEP ALIVE"
 - HEROKU
+
+## API REST
+URL: https://desafiobsale.herokuapp.com
+
+### 1. Obtener todos los productos
+GET: /products
+
+#### Respuesta: El backend devuelve la lista con la siguiente estructura JSON 
+```JSON
+[
+  {
+    "id": 5,
+    "name": "ENERGETICA MR BIG",
+    "url_image": "https://dojiw2m9tvv09.cloudfront.net/11132/product/misterbig3308256.jpg",
+    "price": 1490,
+    "discount": 20,
+    "category": 1
+  },
+  {
+    "id": 6,
+    "name": "ENERGETICA RED BULL",
+    "url_image": "https://dojiw2m9tvv09.cloudfront.net/11132/product/redbull8381.jpg",
+    "price": 1490,
+    "discount": 0,
+    "category": 1
+  },
+]
+```
+
+### 2. Obtener producto por ID
+GET: /products/:id
+Se envia el id del producto del cuál se dese obtener
+
+#### Respuesta: El backend devuelve la lista con la siguiente estructura JSON con la información del producto
+```JSON 
+{
+  "id": 5,
+  "name": "ENERGETICA MR BIG",
+  "url_image": "https://dojiw2m9tvv09.cloudfront.net/11132/product/misterbig3308256.jpg",
+  "price": 1490,
+  "discount": 20,
+  "category": 1
+}
+```
+
+### 3. Filtrar productos por Categoría
+GET: /products/category/:id
+Se envia el id de la categoría de la cuál se dese obtener sus productos
+
+#### Respuesta: El backend devuelve la lista con la siguiente estructura JSON con la lista filtrada
+```JSON [
+    {
+        "id": 5,
+        "name": "ENERGETICA MR BIG",
+        "url_image": "https://dojiw2m9tvv09.cloudfront.net/11132/product/misterbig3308256.jpg",
+        "price": 1490,
+        "discount": 20,
+        "category": 1
+    },
+    {
+        "id": 6,
+        "name": "ENERGETICA RED BULL",
+        "url_image": "https://dojiw2m9tvv09.cloudfront.net/11132/product/redbull8381.jpg",
+        "price": 1490,
+        "discount": 0,
+        "category": 1
+    },
+]
+```
+
+### 4. Filtrar por búsqueda escrita
+POST: /products/search?s=<query>
+Se envia el query mediante la url con el parámetro "s"
+
+#### Respuesta: El backend devuelve la lista con la siguiente estructura JSON con la lista de los productos que contienen el query enviado
+```JSON
+  [
+    {
+        "id": 23,
+        "name": "RON BACARDI AÑEJO",
+        "url_image": "https://dojiw2m9tvv09.cloudfront.net/11132/product/bacardi9450.jpg",
+        "price": 4990,
+        "discount": 0,
+        "category": 3
+    },
+    {
+        "id": 24,
+        "name": "RON BACARDI 8 AÑOS",
+        "url_image": "https://dojiw2m9tvv09.cloudfront.net/11132/product/bacardianejo9463.jpg",
+        "price": 5990,
+        "discount": 0,
+        "category": 3
+    },
+    {
+        "id": 25,
+        "name": "RON ABUELO",
+        "url_image": "https://dojiw2m9tvv09.cloudfront.net/11132/product/abuelo9475.jpg",
+        "price": 3990,
+        "discount": 0,
+        "category": 3
+    },
+]
+```
+  
+### 5. Obtener oferta
+GET: /offer
+Se envía el enlace con offer que te brinda la oferta actualizada por el backend automáticamente
+
+#### Respuesta: El backend devuelve una oferta aleatoriamente ya obtenida
+```JSON
+{
+  "id": 15,
+  "name": "PISCO ESPIRITU DEL ELQUI 45º",
+  "url_image": "https://dojiw2m9tvv09.cloudfront.net/11132/product/espiritu8957.jpg",
+  "price": 6990,
+  "discount": 5,
+  "category": 2
+}
+```
 
 ## Keep Alive
 La estrategia de Keep Alive se usó primero una conexión pool mediante TypeORM para mantener la sesión iniciada en el pool de conexiones.
